@@ -1,0 +1,47 @@
+input.QuickOrderGridInputQty {
+    width: 80%;
+    margin: 10px;
+}
+section.productView-QuickOrderGrid {
+    width: 50%;
+}
+span.form-option-variant.optionVariantColorQOgrd {
+    width: 45px;
+    height: 45px;
+}
+.QuickOrderGridATCloader{background:url(https://cdn11.bigcommerce.com/s-d90mhrk6wa/product_images/uploaded_images/loader0.gif) no-repeat center center; background-size:90px; font-size:0 !important; background-color:#333 !important;}
+
+.sizeTr .sizeth.is-Active{font-weight:bold;}
+
+.colorTr.is-Active td:first-child{font-weight:bold;}
+
+.colorTr td:first-child{display:flex; align-items:center;}
+
+.colorTr td.out-of-stock .stock-text{left:0; right:0; padding-bottom:0px; text-align:center;padding:0 6px;}
+
+.colorTr td.out-of-stock{white-space:inherit;}
+
+.prdctViewQuickOrderGridTable{width:100%;}
+
+.sizeTr th.sizeth {font-weight:100; width:90px;}
+
+.sizeTr {background:#000; color:#fff; font-size:12px; height:35px; font-weight:400; text-transform:uppercase;}
+
+.colorTr td{text-align:center; position:relative; border:1px solid #a7a9ab; height:35px; vertical-align:middle; text-transform:uppercase; padding:0 5px;
+    font-size: 12px; font-weight:400; line-height:1.25; letter-spacing:1.02px; text-align:left; color:#4d4c4d; white-space:nowrap; text-overflow:ellipsis;}
+
+span.form-option-variant.optionVariantColorQOgrd{width:27px; margin-right:5px; height:27px; border-radius:27px; -webkit-border-radius:27px; min-width:inherit;
+}
+
+input.QuickOrderGridInputQty{position:absolute; top:0; left:0; width:100%; height:100%; margin:0; border:1px solid transparent; outline:0; font-family:AGBookPro_Medium,Arial,sans-serif; font-size:12px; font-weight:400; line-height:1.25; letter-spacing:1.02px; text-align:center; color:#000; background-color:transparent; z-index:10;}
+
+input.QuickOrderGridInputQty:focus{outline:none !important; border-color:#000; top:-1px; right:-1px; left:-1px; bottom:-1px; width:calc(100% + 2px); height:calc(100% + 2px);}
+
+.colorTr .stock-text{position:absolute;right:5px;bottom:3px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:400;line-height:1.22;letter-spacing:.2px;text-align:right;color:#a7a9ab;z-index:2}
+
+.QO-addToCart{max-width:250px;width:100%;float:right;margin-top:20px!important;margin-bottom:0}
+
+
+@media (max-width:800px){
+ section.productView-QuickOrderGrid{width:100%; padding:0 15px; display:none;}
+}

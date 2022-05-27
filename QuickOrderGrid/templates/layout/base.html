@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html class="no-js" lang="{{ locale_name }}">
+    <head>
+        <title>{{ head.title }}</title>
+        {{{ resourceHints }}}
+        {{{ head.meta_tags }}}
+        {{{ head.config }}}
+        {{#block "head"}} {{/block}}
+
+        <link href="{{ head.favicon }}" rel="shortcut icon">
+        <meta name="viewport" content="width=device-width, initial-scale=1">        
+        <script>
+            {{!-- Change document class from no-js to js so we can detect this in css --}}
+            document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+        </script>
+
+        {{> components/common/polyfill-script }}
+        <script>window.consentManagerTranslations = `{{{langJson 'consent_manager'}}}`;</script>
+
+        {{!-- Load Lazysizes script ASAP so images will appear --}}
+        <script>
+            {{!-- Only load visible elements until the onload event fires, after which preload nearby elements. --}}
+            window.lazySizesConfig = window.lazySizesConfig || {};
+            window.lazySizesConfig.loadMode = 1;
+        </script>
+        <script async src="{{cdn 'assets/dist/theme-bundle.head_async.js'}}"></script>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+
+        <script>
+            WebFont.load({
+                custom: {
+                    families: ['Karla', 'Roboto', 'Source Sans Pro']
+                },
+                classes: false
+            });
+        </script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/jquery.slick/1.3.15/slick.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" />
+        <!--<script src="https://kit.fontawesome.com/ed556a252e.js" crossorigin="anonymous"></script>-->
+
+        {{ getFontsCollection }}
+        {{{stylesheet '/assets/css/theme.css'}}}
+
+        {{{head.scripts}}}
+
+        {{~inject 'zoomSize' theme_settings.zoom_size}}
+        {{~inject 'productSize' theme_settings.product_size}}
+        {{~inject 'genericError' (lang 'common.generic_error')}}
+        {{~inject 'maintenanceModeSettings' settings.maintenance}}
+        {{~inject 'adminBarLanguage' (langJson 'admin')}}
+        {{~inject 'urls' urls}}
+        {{~inject 'secureBaseUrl' settings.secure_base_url}}
+        {{~inject 'cartId' cart_id}}
+        {{~inject 'channelId' settings.channel_id}}
+        {{~inject 'template' template}}
+        {{~inject 'validationDictionaryJSON' (langJson 'validation_messages')}}
+        {{~inject 'validationFallbackDictionaryJSON' (langJson 'validation_fallback_messages')}}
+        {{~inject 'validationDefaultDictionaryJSON' (langJson 'validation_default_messages')}}
+        {{~inject 'carouselArrowAndDotAriaLabel' (lang 'carousel.arrow_and_dot_aria_label')}}
+        {{~inject 'carouselActiveDotAriaLabel' (lang 'carousel.active_dot_aria_label')}}
+        {{~inject 'carouselContentAnnounceMessage' (lang 'carousel.content_announce_message')}}
+    </head>
+    <body{{#unless customer}} class="top-bar-padding"{{/unless}}>
+        {{! Custom Edit}}
+        <div id="overlay"></div>
+        <svg data-src="{{cdn 'img/icon-sprite.svg'}}" class="icons-svg-sprite"></svg>
+
+        {{> components/common/header }}
+        {{> components/common/body }}
+        {{> components/common/footer }}
+
+        <script>window.__webpack_public_path__ = "{{cdn 'assets/dist/'}}";</script>
+        <script src="{{cdn 'assets/dist/theme-bundle.main.js'}}"></script>
+        <script>
+            {{!-- Exported in app.js --}}
+            window.stencilBootstrap("{{page_type}}", {{jsContext}}).load();
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script type="text/javascript">
+            /*** Get Product Variants for Quick Order Grid for product page start ***/
+                function fetchProductVariantsforQuickOrderusingGrapQL(productId) {
+                    fetch('/graphql', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer {{ settings.storefront_api.token }}'
+                        },
+                        body: JSON.stringify({
+                            query: `
+                            query productById {
+                               site {
+                                 product(entityId: `+productId+`) {
+                                   id
+                                   entityId
+                                   name
+                                   variants(first: 200){
+                                     edges {
+                                       node {
+                                         sku
+                                         entityId
+                                         inventory{
+                                          aggregated{
+                                            availableToSell
+                                          }
+                                         }
+                                         productOptions{
+                                          edges{
+                                            node{
+                                              displayName
+                                              ... on MultipleChoiceOption {
+                                                values {
+                                                   edges {
+                                                     node {
+                                                       label
+                                                     }
+                                                   }
+                                                 }
+                                              }
+                                            }
+                                          }
+                                        }
+                                       }
+                                     }
+                                   }
+                                 }
+                               }
+                             } 
+                            `
+                        }),
+                    })
+                    .then(res => res.json())
+                    .then(function(data) {
+                        var prdctVariantsEdges = data.data.site.product.variants.edges;
+                        prdctVariantsEdges.map(function(prdctVariantEdge) {
+                          var variantId = prdctVariantEdge.node.entityId;
+                          var variantSKU = prdctVariantEdge.node.sku;
+                          var variantAvailableStock = prdctVariantEdge.node.inventory.aggregated.availableToSell;
+
+                          var productVariantOptionsEdges = prdctVariantEdge.node.productOptions.edges;
+                          var prdctVariantOptionColorValue = '';
+                          var prdctVariantOptionSizeValue = '';
+                          productVariantOptionsEdges.map(function(prdctVariantOptionEdge) {
+                            var prdctVariantOptionDisplayName = prdctVariantOptionEdge.node.displayName;
+                            if(prdctVariantOptionDisplayName == 'Color')
+                            {
+                              prdctVariantOptionColorValue = prdctVariantOptionEdge.node.values.edges[0].node.label;
+                            }
+                            else if(prdctVariantOptionDisplayName == 'Size')
+                            {
+                              prdctVariantOptionSizeValue = prdctVariantOptionEdge.node.values.edges[0].node.label;
+                            }
+                          });
+                          var tdinputData = '';
+                          $(".prdctViewQuickOrderGridTbody .colorTr").each(function(){
+                            var prdctViewQOGrdColorTrThis = $(this);
+                             var colorTrColorName = prdctViewQOGrdColorTrThis.data('colourname');
+                             if(colorTrColorName == prdctVariantOptionColorValue)
+                             {
+                                prdctViewQOGrdColorTrThis.find('.colorData').each(function(){
+                                  var prdctViewQOGrdColorDataThis = $(this);
+                                  var colorTrSizeName = prdctViewQOGrdColorDataThis.data('sizename');
+                                  if(colorTrSizeName == prdctVariantOptionSizeValue)
+                                  {
+                                    
+                                    if(variantAvailableStock < 1 ) 
+                                    {
+                                      tdinputData = '<input type="text" name="'+variantSKU+'Qty" data-variantSKU="'+variantSKU+'" data-variantId="'+variantId+'" data-variantAvailblStock="'+variantAvailableStock+'" class="QuickOrderGridInputQty" disabled min="0">';
+                                      tdinputData += '<span class="stock-text js-stock-text">OUT OF STOCK</span>';
+                                      prdctViewQOGrdColorDataThis.attr('disabled',true);
+                                      prdctViewQOGrdColorDataThis.addClass("out-of-stock");
+                                      prdctViewQOGrdColorDataThis.find(".QuickOrderGridInputQty").prop('disabled',true);
+                                    }
+                                    else if(variantAvailableStock>= 1 && variantAvailableStock <= 200)
+                                    {
+                                      prdctViewQOGrdColorDataThis.addClass("in-stock");
+                                      tdinputData = '<input type="text" name="'+variantSKU+'Qty" data-variantSKU="'+variantSKU+'" data-variantId="'+variantId+'" data-variantAvailblStock="'+variantAvailableStock+'" class="QuickOrderGridInputQty" min="0">';
+                                      tdinputData += '<span class="stock-text js-stock-text">'+variantAvailableStock+'</span>';
+                                    }
+                                    else if(variantAvailableStock > 200)
+                                    {
+                                      prdctViewQOGrdColorDataThis.addClass("in-stock");
+                                      tdinputData = '<input type="text" name="'+variantSKU+'Qty" data-variantSKU="'+variantSKU+'" data-variantId="'+variantId+'" data-variantAvailblStock="'+variantAvailableStock+'" class="QuickOrderGridInputQty" min="0">';
+                                      tdinputData += '<span class="stock-text js-stock-text">'+variantAvailableStock+'+</span>';
+                                    }
+                                    prdctViewQOGrdColorDataThis.html('');
+                                    prdctViewQOGrdColorDataThis.html(tdinputData);
+                                    $(".productView-QuickOrderGrid").show();
+                                  }
+                                });                   
+                             }
+                          });
+                        });            
+                    });
+                }
+                /*** Get Product Variants for Quick Order Grid for product page End ***/
+
+                /*** Get Product Options for Quick Orde rGrid for product page start ***/
+                function fetchProductOptionsforQuickOrderusingGrapQL(productId) {
+                    fetch('/graphql', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer {{ settings.storefront_api.token }}'
+                        },
+                        body: JSON.stringify({
+                            query: `
+                              query productById {
+                               site {
+                                 product(entityId: `+productId+`) {
+                                   entityId
+                                   name
+                                   productOptions{
+                                     edges{
+                                       node{
+                                         displayName
+                                         ... on MultipleChoiceOption {
+                                           values {
+                                              edges {
+                                                node {
+                                                  entityId
+                                                  label
+                                                  ... on SwatchOptionValue {
+                                                    hexColors
+                                                    imageUrl(width: 200)
+                                                 }
+                                               }
+                                             }
+                                           }
+                                         }
+                                       }
+                                     }
+                                   }
+                                 }
+                               }
+                             } 
+                            `
+                        }),
+                    })
+                    .then(res => res.json())
+                    .then(function(data) {
+                        var prdctOptionsEdges = '';
+                        prdctOptionsEdges = data.data.site.product.productOptions.edges;
+                        
+                        var colorTrs = '';
+                        var sizeTr = '';
+                        var colorTds = '';
+                        prdctOptionsEdges.map(function(prdctOptionEdge) {
+                          var prdctOptionName = prdctOptionEdge.node.displayName;
+                          var prdctOptionValuesEdges = prdctOptionEdge.node.values.edges;
+                          
+                          sizeTr = '';
+                          sizeTr += '<tr class="sizeTr">';
+                          sizeTr += '<th>ORDER GRID.</th>';
+                          prdctOptionValuesEdges.map(function(optionValue) {
+                            var optionValueLabel = optionValue.node.label;
+                            if(prdctOptionName == 'Color')
+                            {
+                              colorTrs += '<tr class="colorTr" data-colourName="'+optionValueLabel+'">';
+                              var optionValueBackgroundHexColor = '';
+                              var optionValueBackgroundimage = '';
+                              if(optionValue.node.hexColors != '')
+                              {
+                                optionValueBackgroundHexColor = optionValue.node.hexColors[0];
+                                colorTrs += '<td data-colour="'+optionValueLabel+'"><span class="form-option-variant optionVariantColorQOgrd" title="'+optionValueLabel+'" style="background-color: '+optionValueBackgroundHexColor+'"></span>';
+                              }
+                              else if(optionValue.node.imageUrl)
+                              {
+                                optionValueBackgroundimage = optionValue.node.imageUrl;
+                                colorTrs += '<td data-colour="'+optionValueLabel+'"><span class="form-option-variant optionVariantColorQOgrd" title="'+optionValueLabel+'" style="background: url('+optionValueBackgroundimage+');"></span>';
+                              } 
+                                colorTrs += '<span class="QOgrdoptionVariantLabel">'+optionValueLabel+'</span></td>';
+                              colorTrs += '</tr>';
+                            }
+                            else if(prdctOptionName == 'Size')
+                            {
+                              sizeTr += '<th class="sizeth" data-sizeName="'+optionValueLabel+'">'+optionValueLabel+'</th>';
+                              colorTds += '<td class="colorData" data-sizeName="'+optionValueLabel+'"></td>';
+                            }
+                          });
+                          sizeTr += '</tr>';                           
+                        });
+                        var QuickOrderGridTableBodyData = sizeTr + colorTrs;
+                        $(".prdctViewQuickOrderGridTbody").html('');
+                        $(".prdctViewQuickOrderGridTbody").html(QuickOrderGridTableBodyData);
+                        $(".prdctViewQuickOrderGridTbody .colorTr").each(function(){
+                             $(this).append(colorTds);
+                        });
+                        fetchProductVariantsforQuickOrderusingGrapQL(productId)
+                    });
+                }
+                /*** Get Product Options for Quick OrderGrid for product page End ***/ 
+        </script>
+        <script src="{{cdn 'assets/js/theme/customization.js'}}"></script>
+        {{{footer.scripts}}} 
+    </body>
+</html>

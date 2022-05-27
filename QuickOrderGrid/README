@@ -1,0 +1,11 @@
+This is the customization for BigCommerce store to allow users to add the different variant options in bulk at the same time from product detail page. so they will not have to add single single variants by selecting it separately.
+
+The user will have a grid on product detail page, where he/she will be able to see the variants Avaialability. if the variant is not in stock then it will display the "OUT OF STOCK". if the variant is in stock then it will display the available stock.
+
+A user will be able to enter the quantity for the variants on input box. if he/she will enter the Qty higher than the available stock, it will reset the grid and will display the error message "QTY. EXCEEDED".
+
+For "OUT OF STOCK" variants they will not be able to enter the QTY. the field for "OUT OF STOCK" variants will be disabled.
+
+After entering the Qty in the fields, "Add to Basket" button will get enabled and user will be able to add the variants in bulk by clicking on "Add to Basket" button.
+
+
